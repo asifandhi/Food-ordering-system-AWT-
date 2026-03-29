@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Events\OrderStatusUpdated;
 
+use Illuminate\Support\Facades\DB;
+
+
+ 
 class OrderManageController extends Controller
 {
     public function index()
@@ -54,6 +58,8 @@ class OrderManageController extends Controller
         if ($request->status === 'delivered' && $order->payment_method === 'cod') {
             $order->update(['payment_status' => 'paid']);
         }
+
+         
 
         return back()->with('success', 'Order status updated to: ' . strtoupper($request->status));
     }

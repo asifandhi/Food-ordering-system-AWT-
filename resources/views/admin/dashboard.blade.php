@@ -127,8 +127,8 @@
                             <tr>
                                 <td><span class="badge bg-secondary">#{{ $order->id }}</span></td>
                                 <td>{{ $order->customer_name }}</td>
-                                <td>{{ $order->restaurant_name }}</td>
-                                <td>₹{{ number_format($order->total_amount, 2) }}</td>
+                                <td>{{ $order->hotel_name }}</td>
+                                <td>₹{{ number_format($order->grand_total, 2) }}</td>
                                 <td>
                                     <span class="badge rounded-pill
                                         @if($order->status === 'delivered' || $order->status === 'completed') bg-success

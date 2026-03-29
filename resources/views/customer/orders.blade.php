@@ -46,9 +46,28 @@
                     <td class="small text-muted">
                         {{ $order->created_at->format('d M Y') }}
                     </td>
-                    <td>
+                    <td class="d-flex gap-1 align-items-center">
                         <a href="{{ route('customer.orders.show', $order->id) }}"
                            class="btn btn-sm btn-orange">Track</a>
+
+                        @if($order->status === 'delivered')
+                            @php
+                                $alreadyReviewed = \Illuminate\Support\Facades\DB::table('reviews')
+                                    ->where('user_id', auth()->id())
+                                    ->where('hotelier_id', $order->hotelier_id)
+                                    ->exists();
+                            @endphp
+                            @if(!$alreadyReviewed)
+                                <a href="{{ route('customer.review.create', $order->id) }}"
+                                   class="btn btn-sm btn-warning">
+                                    <i class="bi bi-star me-1"></i>Review
+                                </a>
+                            @else
+                                <button class="btn btn-sm btn-outline-success" disabled>
+                                    <i class="bi bi-star-fill me-1"></i>Done
+                                </button>
+                            @endif
+                        @endif
                     </td>
                 </tr>
                 @endforeach

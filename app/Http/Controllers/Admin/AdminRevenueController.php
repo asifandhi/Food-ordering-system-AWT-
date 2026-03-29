@@ -50,8 +50,8 @@ class AdminRevenueController extends Controller
             ->groupBy('status')->get();
 
         $totals = [
-            'total_revenue'   => DB::table('orders')->where('status', 'delivered')->sum('grand_total'),
-            'total_orders'    => DB::table('orders')->count(),
+            'total_revenue' => DB::table('orders')->where('status', 'delivered')->sum('grand_total'),
+            'total_orders' => DB::table('orders')->count(),
             'avg_order_value' => DB::table('orders')->where('status', 'delivered')->avg('grand_total') ?? 0,
         ];
 

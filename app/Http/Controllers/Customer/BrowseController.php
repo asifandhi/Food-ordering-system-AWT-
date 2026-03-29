@@ -12,11 +12,11 @@ class BrowseController extends Controller
 {
     public function index(Request $request)
     {
-        $user    = Auth::user();
+        $user = Auth::user();
         $profile = $user->customerProfile;
 
         // Get customer location from profile or session
-        $customerLat = $profile->latitude  ?? session('customer_lat');
+        $customerLat = $profile->latitude ?? session('customer_lat');
         $customerLng = $profile->longitude ?? session('customer_lng');
 
         // Save location from request if submitted manually
@@ -28,9 +28,9 @@ class BrowseController extends Controller
             // Save to profile
             if ($profile) {
                 $profile->update([
-                    'latitude'  => $customerLat,
+                    'latitude' => $customerLat,
                     'longitude' => $customerLng,
-                    'city'      => $request->city ?? $profile->city,
+                    'city' => $request->city ?? $profile->city,
                 ]);
             }
         }
@@ -46,14 +46,16 @@ class BrowseController extends Controller
             $deliveryInfo = ['charge' => '—', 'estimated_time' => '—', 'deliverable' => false];
 
             if ($customerLat && $customerLng && $restaurant->latitude && $restaurant->longitude) {
-                $distance     = LocationService::getDistanceKm(
-                    $customerLat, $customerLng,
-                    $restaurant->latitude, $restaurant->longitude
+                $distance = LocationService::getDistanceKm(
+                    $customerLat,
+                    $customerLng,
+                    $restaurant->latitude,
+                    $restaurant->longitude
                 );
                 $deliveryInfo = LocationService::getDeliveryInfo($restaurant->deliverySlabs, $distance);
             }
 
-            $restaurant->distance     = $distance;
+            $restaurant->distance = $distance;
             $restaurant->deliveryInfo = $deliveryInfo;
             return $restaurant;
         });
@@ -61,7 +63,7 @@ class BrowseController extends Controller
         // Filter by delivery radius and sort nearest first
         if ($customerLat && $customerLng) {
             $restaurantsWithDistance = $restaurantsWithDistance
-            ->filter(fn($r) => $r->deliveryInfo['deliverable'] === true) 
+                ->filter(fn($r) => $r->deliveryInfo['deliverable'] === true)
                 ->sortBy('distance');
         }
 
@@ -70,7 +72,7 @@ class BrowseController extends Controller
             $search = strtolower($request->search);
             $restaurantsWithDistance = $restaurantsWithDistance->filter(
                 fn($r) => str_contains(strtolower($r->hotel_name), $search)
-                       || str_contains(strtolower($r->cuisine_type), $search)
+                || str_contains(strtolower($r->cuisine_type), $search)
             );
         }
 
@@ -82,53 +84,62 @@ class BrowseController extends Controller
         }
 
         $cuisines = HotelierProfile::where('status', 'approved')
-                        ->distinct()->pluck('cuisine_type');
+            ->distinct()->pluck('cuisine_type');
 
         return view('customer.browse', compact(
-            'restaurantsWithDistance', 'customerLat', 'customerLng', 'cuisines'
+            'restaurantsWithDistance',
+            'customerLat',
+            'customerLng',
+            'cuisines'
         ));
     }
 
     public function restaurant($id)
     {
         $restaurant = HotelierProfile::where('id', $id)
-                        ->where('status', 'approved')
-                        ->with(['categories.foodItems', 'deliverySlabs'])
-                        ->firstOrFail();
+            ->where('status', 'approved')
+            ->with(['categories.foodItems', 'deliverySlabs'])
+            ->firstOrFail();
 
-        $user        = Auth::user();
-        $profile     = $user->customerProfile;
-        $customerLat = $profile->latitude  ?? session('customer_lat');
+        $user = Auth::user();
+        $profile = $user->customerProfile;
+        $customerLat = $profile->latitude ?? session('customer_lat');
         $customerLng = $profile->longitude ?? session('customer_lng');
 
-        $distance     = null;
+        $distance = null;
         $deliveryInfo = ['charge' => 0, 'estimated_time' => 30, 'deliverable' => true];
 
         if ($customerLat && $customerLng && $restaurant->latitude && $restaurant->longitude) {
-            $distance     = LocationService::getDistanceKm(
-                $customerLat, $customerLng,
-                $restaurant->latitude, $restaurant->longitude
+            $distance = LocationService::getDistanceKm(
+                $customerLat,
+                $customerLng,
+                $restaurant->latitude,
+                $restaurant->longitude
             );
             $deliveryInfo = LocationService::getDeliveryInfo($restaurant->deliverySlabs, $distance);
         }
 
         // Get customer cart for this restaurant
         $cartItems = $user->cartItems()
-                        ->whereHas('foodItem', fn($q) => $q->where('hotelier_id', $id))
-                        ->with('foodItem')
-                        ->get();
+            ->whereHas('foodItem', fn($q) => $q->where('hotelier_id', $id))
+            ->with('foodItem')
+            ->get();
 
         $cartTotal = $cartItems->sum(fn($c) => $c->quantity * $c->foodItem->price);
 
         $reviews = \App\Models\Review::where('hotelier_id', $id)
-                    ->with('customer')
-                    ->latest()
-                    ->take(5)
-                    ->get();
+            ->with('customer')
+            ->latest()
+            ->take(5)
+            ->get();
 
         return view('customer.restaurant', compact(
-            'restaurant', 'distance', 'deliveryInfo',
-            'cartItems', 'cartTotal', 'reviews'
+            'restaurant',
+            'distance',
+            'deliveryInfo',
+            'cartItems',
+            'cartTotal',
+            'reviews'
         ));
     }
 }

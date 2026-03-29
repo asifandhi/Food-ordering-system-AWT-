@@ -171,14 +171,35 @@ class OrderController extends Controller
     }
 
     public function index()
-    {
-        $orders = Auth::user()->orders()
-            ->with('hotelier')
-            ->latest()
-            ->paginate(10);
+{
+    $orders = DB::table('orders')
+        ->join('hotelier_profiles', 'orders.hotelier_id', '=', 'hotelier_profiles.id')
+        ->select(
+            'orders.id',
+            'orders.grand_total',
+            'orders.status',
+            'orders.payment_method',
+            'orders.created_at',
+            'orders.hotelier_id',
+            'hotelier_profiles.hotel_name'
+        )
+        ->where('orders.user_id', Auth::id())
+        ->orderByDesc('orders.created_at')
+        ->get();
 
-        return view('customer.orders', compact('orders'));
-    }
+    // Mark which orders already have a review
+    $reviewedHotelierIds = DB::table('reviews')
+        ->where('user_id', Auth::id())
+        ->pluck('hotelier_id')
+        ->toArray();
+
+    $orders = $orders->map(function ($order) use ($reviewedHotelierIds) {
+        $order->has_review = in_array($order->hotelier_id, $reviewedHotelierIds);
+        return $order;
+    });
+
+    return view('customer.orders.index', compact('orders'));
+}
 
     public function show($id)
     {

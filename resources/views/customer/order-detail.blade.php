@@ -125,7 +125,7 @@
         @if($canReview)
         <div class="card p-3 p-md-4 mb-3">
             <h6 class="fw-bold mb-3">⭐ Leave a Review</h6>
-            <form method="POST" action="{{ route('customer.review.store') }}">
+            <form method="POST"  action="{{ route('customer.review.store', ['order_id' => $order->id]) }}">
                 @csrf
                 <input type="hidden" name="hotelier_id" value="{{ $order->hotelier_id }}">
                 <div class="mb-3">

@@ -8,6 +8,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+ 
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -23,6 +25,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'hotelier.approved' => \App\Http\Middleware\HotelierApproved::class,
+        ]);
+
+        // Admin routes will use the 'admin' middleware group defined in app/Http/Kernel.php
+        // which includes the custom AdminMiddleware for access control.
+        $middleware->alias([
+            'hotelier' => \App\Http\Middleware\HotelierMiddleware::class,
+            'customer' => \App\Http\Middleware\CustomerMiddleware::class,
+            'admin'    => \App\Http\Middleware\AdminMiddleware::class,
         ]);
 
         // ── Global web middleware (already included by default) ─

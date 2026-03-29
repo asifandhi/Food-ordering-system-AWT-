@@ -15,6 +15,14 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\HotelierController;
 use App\Http\Controllers\Admin\ReportController;
 
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminHotelierController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminOrderController;
+use App\Http\Controllers\Admin\AdminRevenueController;
+
+
 
 
 // ── Landing Page ───────────────────────────────────────────
@@ -123,4 +131,35 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users',           [UserController::class,    'index'])->name('users');
     Route::get('/hoteliers',       [HotelierController::class,'index'])->name('hoteliers');
     Route::get('/reports',         [ReportController::class,  'index'])->name('reports');
+});
+
+// ==================== ADMIN ROUTES ====================
+
+// Admin Auth (no middleware)
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/login',  [AdminAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.post');
+    Route::post('/logout',[AdminAuthController::class, 'logout'])->name('logout');
+});
+
+// Admin Protected Routes
+Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Hoteliers
+    Route::get('/hoteliers',                [AdminHotelierController::class, 'index'])->name('hoteliers.index');
+    Route::post('/hoteliers/{id}/approve',  [AdminHotelierController::class, 'approve'])->name('hoteliers.approve');
+    Route::post('/hoteliers/{id}/reject',   [AdminHotelierController::class, 'reject'])->name('hoteliers.reject');
+    Route::delete('/hoteliers/{id}',        [AdminHotelierController::class, 'destroy'])->name('hoteliers.destroy');
+
+    // Users (Customers)
+    Route::get('/users',          [AdminUserController::class, 'index'])->name('users.index');
+    Route::delete('/users/{id}',  [AdminUserController::class, 'destroy'])->name('users.destroy');
+
+    // Orders
+    Route::get('/orders',       [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{id}',  [AdminOrderController::class, 'show'])->name('orders.show');
+
+    // Revenue
+    Route::get('/revenue', [AdminRevenueController::class, 'index'])->name('revenue.index');
 });
